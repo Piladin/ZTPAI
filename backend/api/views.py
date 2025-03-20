@@ -8,6 +8,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Announcement
+from django.db.models import Q
 
 
 @api_view(['POST'])
@@ -143,4 +144,28 @@ def get_announcement(request, pk):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         print("Error fetching announcement:", str(e))  # Debug print
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def search_announcements(request):
+    subject = request.query_params.get('subject', None)
+    min_rate = request.query_params.get('min_rate', None)
+    max_rate = request.query_params.get('max_rate', None)
+
+    try:
+        announcements = Announcement.objects.all()
+
+        if subject:
+            announcements = announcements.filter(subject__icontains=subject)
+        if min_rate:
+            announcements = announcements.filter(hourly_rate__gte=min_rate)
+        if max_rate:
+            announcements = announcements.filter(hourly_rate__lte=max_rate)
+
+        serializer = AnnouncementSerializer(announcements, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        print("Error searching announcements:", str(e))  # Debug print
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

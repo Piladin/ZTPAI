@@ -8,7 +8,8 @@ from .views import (
     edit_user,
     delete_announcement,
     get_current_user,
-    get_announcement
+    get_announcement,
+    search_announcements
 )
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path('announcements/delete/<int:pk>/', delete_announcement, name='delete_announcement'),
     path('user/edit/', edit_user, name='edit_user'),
     path('user/me/', get_current_user, name='get_current_user'),
+    path('announcements/search/', search_announcements, name='search_announcements'),
 ]
