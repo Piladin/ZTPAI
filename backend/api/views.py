@@ -7,7 +7,7 @@ from .serializers import RegisterSerializer, AnnouncementSerializer, SystemUserS
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Announcement
+from .models import Announcement, SystemUser
 from django.db.models import Q
 
 
@@ -169,3 +169,21 @@ def search_announcements(request):
     except Exception as e:
         print("Error searching announcements:", str(e))  # Debug print
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_list(request):
+    if not request.user.is_staff:
+        return Response({'error': 'You do not have permission to view this.'}, status=status.HTTP_403_FORBIDDEN)
+    users = SystemUser.objects.all()
+    serializer = SystemUserSerializer(users, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_user(request, pk):
+    if not request.user.is_staff:
+        return Response({'error': 'You do not have permission to delete users.'}, status=status.HTTP_403_FORBIDDEN)
+    user = get_object_or_404(SystemUser, pk=pk)
+    user.delete()
+    return Response({'message': 'User deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)

@@ -6,6 +6,7 @@ import Profile from "./components/Profile";
 import Add from "./components/Add";
 import Announcements from "./components/Announcements";
 import EditAnnouncement from "./components/EditAnnouncement";
+import UserList from "./components/UserList";
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
           <Route path="/add" element={<Add />} />
           <Route path="/announcements" element={<Announcements />} />
           <Route path="/edit/:id" element={<EditAnnouncement />} /> {/* Nowa trasa */}
+          <Route path="/users" element={<UserList />} />
         </Routes>
       </div>
     </BrowserRouter>

@@ -9,7 +9,9 @@ from .views import (
     delete_announcement,
     get_current_user,
     get_announcement,
-    search_announcements
+    search_announcements,
+    user_list,
+    delete_user
 )
 
 urlpatterns = [
@@ -23,4 +25,6 @@ urlpatterns = [
     path('user/edit/', edit_user, name='edit_user'),
     path('user/me/', get_current_user, name='get_current_user'),
     path('announcements/search/', search_announcements, name='search_announcements'),
+    path('users/', user_list, name='user_list'),
+    path('users/delete/<int:pk>/', delete_user, name='delete_user'),
 ]

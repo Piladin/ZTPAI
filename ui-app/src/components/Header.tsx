@@ -12,6 +12,8 @@ const handleLogout = () => {
 };
 
 const isLoggedIn = !!sessionStorage.getItem('access_token');
+const isAdmin = JSON.parse(sessionStorage.getItem("is_staff") || "false");
+
 
 const Header = () => {
     return (
@@ -31,6 +33,13 @@ const Header = () => {
             Profil
           </Link>
           </li>
+          {isLoggedIn && isAdmin && (
+          <li className="nav-item">
+            <Link to="/users" className="nav-link">
+              Manage Users
+            </Link>
+          </li>
+        )}
           <li>
           <img
           src={logoutIcon}
