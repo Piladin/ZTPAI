@@ -84,7 +84,12 @@ const Announcements = () => {
             <button className="add-button" onClick={() => navigate(user ? "/add" : "/login")}>
                 Add Announcement
             </button>
-
+            <button 
+                className="refresh-button" 
+                onClick={fetchAnnouncements}
+            >
+                Refresh
+            </button>
             <div className="announcements-grid">
                 {announcements.map(announcement => (
                     <div key={announcement.id} className="announcement-card">
