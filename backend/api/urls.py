@@ -14,6 +14,8 @@ from .views import (
     delete_user
 )
 
+
+
 urlpatterns = [
     path('register/', register, name='register'),
     path('login/', login, name='login'),
