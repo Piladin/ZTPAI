@@ -21,6 +21,41 @@ from django.db.models import Q
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
+    """
+    Register a new user.
+
+    ---
+    parameters:
+      - name: username
+        description: Username for the new user
+        required: true
+        type: string
+      - name: email
+        description: Email address of the user
+        required: true
+        type: string
+      - name: password
+        description: Password for the user
+        required: true
+        type: string
+      - name: first_name
+        description: First name of the user
+        required: true
+        type: string
+      - name: last_name
+        description: Last name of the user
+        required: true
+        type: string
+      - name: phone_number
+        description: Phone number of the user (optional)
+        required: false
+        type: string
+    responses:
+      201:
+        description: User created successfully
+      400:
+        description: Validation error
+    """
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         try:
@@ -34,6 +69,37 @@ def register(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
+    """
+    Authenticate a user and return JWT tokens.
+
+    ---
+    parameters:
+      - name: username
+        description: Username of the user
+        required: true
+        type: string
+      - name: password
+        description: Password of the user
+        required: true
+        type: string
+    responses:
+      200:
+        description: Authentication successful
+        schema:
+          type: object
+          properties:
+            refresh:
+              type: string
+              description: Refresh token
+            access:
+              type: string
+              description: Access token
+            user_id:
+              type: integer
+              description: ID of the authenticated user
+      400:
+        description: Invalid credentials
+    """
     if request.method == 'POST':
         serializer = TokenObtainPairSerializer(data=request.data)
         if serializer.is_valid():
@@ -54,6 +120,44 @@ def login(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def announcement_list(request):
+    """
+    Retrieve a list of all announcements.
+
+    ---
+    responses:
+      200:
+        description: A list of announcements
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: ID of the announcement
+              subject:
+                type: string
+                description: Subject of the announcement
+              content:
+                type: string
+                description: Content of the announcement
+              hourly_rate:
+                type: number
+                format: float
+                description: Hourly rate for the announcement
+              author:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: ID of the author
+                  first_name:
+                    type: string
+                    description: First name of the author
+                  last_name:
+                    type: string
+                    description: Last name of the author
+    """
     announcements = Announcement.objects.all()
     serializer = AnnouncementSerializer(announcements, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -62,6 +166,58 @@ def announcement_list(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_announcement(request):
+    """
+    Add a new announcement.
+
+    ---
+    parameters:
+      - name: subject
+        description: Subject of the announcement
+        required: true
+        type: string
+      - name: content
+        description: Content of the announcement
+        required: true
+        type: string
+      - name: hourly_rate
+        description: Hourly rate for the announcement
+        required: true
+        type: number
+        format: float
+    responses:
+      201:
+        description: Announcement created successfully
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: ID of the announcement
+            subject:
+              type: string
+              description: Subject of the announcement
+            content:
+              type: string
+              description: Content of the announcement
+            hourly_rate:
+              type: number
+              format: float
+              description: Hourly rate for the announcement
+            author:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: ID of the author
+                first_name:
+                  type: string
+                  description: First name of the author
+                last_name:
+                  type: string
+                  description: Last name of the author
+      400:
+        description: Validation error
+    """
     serializer = AnnouncementSerializer(data=request.data)
     if serializer.is_valid():
         try:
@@ -74,6 +230,54 @@ def add_announcement(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def edit_announcement(request, pk):
+    """
+    Edit an existing announcement.
+
+    ---
+    parameters:
+      - name: id
+        description: ID of the announcement to edit
+        required: true
+        type: integer
+      - name: subject
+        description: New subject of the announcement (optional)
+        required: false
+        type: string
+      - name: content
+        description: New content of the announcement (optional)
+        required: false
+        type: string
+      - name: hourly_rate
+        description: New hourly rate for the announcement (optional)
+        required: false
+        type: number
+        format: float
+    responses:
+      200:
+        description: Announcement updated successfully
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: ID of the announcement
+            subject:
+              type: string
+              description: Updated subject of the announcement
+            content:
+              type: string
+              description: Updated content of the announcement
+            hourly_rate:
+              type: number
+              format: float
+              description: Updated hourly rate for the announcement
+      403:
+        description: Unauthorized access
+      404:
+        description: Announcement not found
+      400:
+        description: Validation error
+    """
     try:
         announcement = Announcement.objects.get(pk=pk)
         if request.user != announcement.author and not request.user.is_staff:
@@ -89,6 +293,51 @@ def edit_announcement(request, pk):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def edit_user(request):
+    """
+    Edit the current user's profile.
+
+    ---
+    parameters:
+      - name: first_name
+        description: New first name of the user (optional)
+        required: false
+        type: string
+      - name: last_name
+        description: New last name of the user (optional)
+        required: false
+        type: string
+      - name: email
+        description: New email address of the user (optional)
+        required: false
+        type: string
+      - name: phone_number
+        description: New phone number of the user (optional)
+        required: false
+        type: string
+    responses:
+      200:
+        description: User profile updated successfully
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: ID of the user
+            first_name:
+              type: string
+              description: Updated first name of the user
+            last_name:
+              type: string
+              description: Updated last name of the user
+            email:
+              type: string
+              description: Updated email address of the user
+            phone_number:
+              type: string
+              description: Updated phone number of the user
+      400:
+        description: Validation error
+    """
     user = request.user
     serializer = SystemUserSerializer(user, data=request.data, partial=True)
     if serializer.is_valid():
@@ -106,6 +355,23 @@ def edit_user(request):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_announcement(request, pk):
+    """
+    Delete an announcement.
+
+    ---
+    parameters:
+      - name: id
+        description: ID of the announcement to delete
+        required: true
+        type: integer
+    responses:
+      204:
+        description: Announcement deleted successfully
+      403:
+        description: Unauthorized access
+      404:
+        description: Announcement not found
+    """
     try:
         announcement = Announcement.objects.get(pk=pk)
         if request.user != announcement.author and not request.user.is_staff:
@@ -118,6 +384,35 @@ def delete_announcement(request, pk):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_current_user(request):
+    """
+    Retrieve the current user's profile.
+
+    ---
+    responses:
+      200:
+        description: User profile retrieved successfully
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: ID of the user
+            first_name:
+              type: string
+              description: First name of the user
+            last_name:
+              type: string
+              description: Last name of the user
+            email:
+              type: string
+              description: Email address of the user
+            phone_number:
+              type: string
+              description: Phone number of the user
+            is_staff:
+              type: boolean
+              description: Whether the user is an admin
+    """
     try:
         user = request.user
         if not user:
@@ -166,6 +461,39 @@ def search_announcements(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_list(request):
+    """
+    Retrieve a list of all users (admin only).
+
+    ---
+    responses:
+      200:
+        description: A list of users
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: ID of the user
+              first_name:
+                type: string
+                description: First name of the user
+              last_name:
+                type: string
+                description: Last name of the user
+              email:
+                type: string
+                description: Email address of the user
+              phone_number:
+                type: string
+                description: Phone number of the user
+              is_staff:
+                type: boolean
+                description: Whether the user is an admin
+      403:
+        description: Unauthorized access
+    """
     if not request.user.is_staff:
         raise UnauthorizedAccessException()
     users = SystemUser.objects.all()
@@ -175,6 +503,23 @@ def user_list(request):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_user(request, pk):
+    """
+    Delete a user (admin only).
+
+    ---
+    parameters:
+      - name: id
+        description: ID of the user to delete
+        required: true
+        type: integer
+    responses:
+      204:
+        description: User deleted successfully
+      403:
+        description: Unauthorized access
+      404:
+        description: User not found
+    """
     if not request.user.is_staff:
         raise UnauthorizedAccessException()
     try:
