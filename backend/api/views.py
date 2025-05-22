@@ -16,6 +16,7 @@ from .exceptions import (
     ValidationErrorException,
 )
 from django.db.models import Q
+from .tasks import send_notification
 
 
 @api_view(['POST'])
@@ -59,10 +60,14 @@ def register(request):
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         try:
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+          user = serializer.save()
+          send_notification.delay(user.email, "Welcome to our service!")
+          return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
+            if hasattr(e, 'detail'):
+                raise ValidationErrorException(detail=e.detail)
             raise ValidationErrorException(detail=str(e))
+    print("Serializer errors:", serializer.errors) 
     raise ValidationErrorException(detail=serializer.errors)
 
 

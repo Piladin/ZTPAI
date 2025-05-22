@@ -180,4 +180,15 @@ SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+CELERY_BROKER_URL = 'amqp://user:password@rabbitmq:5672//'
+CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_TASK_QUEUES = {
+    'notifications': {
+        'exchange': 'notifications',
+        'exchange_type': 'direct',
+        'binding_key': 'notifications',
+        'durable': True,
+    }
+}
+
 AUTH_USER_MODEL = 'api.SystemUser'

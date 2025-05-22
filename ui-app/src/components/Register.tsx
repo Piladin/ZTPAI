@@ -30,8 +30,10 @@ const Register = () => {
                 phone_number: phone
             });
             console.log('Registration response:', response.data);
+            if (response.status === 201) {
             alert('Registration successful!');
             navigate('/login');
+            }
         } catch (error) {
             console.error('Registration error:', error);
         }

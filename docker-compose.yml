@@ -57,7 +57,31 @@ services:
     environment:
       - REACT_APP_BACKEND_URL=http://localhost:8000/api
 
-
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+  celery:
+    working_dir: /app/backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A backend worker -Q notifications --loglevel=info
+    depends_on:
+      - backend
+      - rabbitmq
+    environment:
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=newpassword
+      - DB_HOST=postgres
+      - CELERY_BROKER_URL=amqp://user:password@rabbitmq:5672//
+    volumes:
+      - .:/app
 volumes:
   postgres_data:
   pgadmin_data:
