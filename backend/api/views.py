@@ -17,6 +17,7 @@ from .exceptions import (
 )
 from django.db.models import Q
 from .tasks import send_notification
+from rest_framework.pagination import PageNumberPagination
 
 
 @api_view(['POST'])
@@ -163,9 +164,12 @@ def announcement_list(request):
                     type: string
                     description: Last name of the author
     """
-    announcements = Announcement.objects.all()
-    serializer = AnnouncementSerializer(announcements, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    paginator = PageNumberPagination()
+    paginator.page_size = 10  # or remove to use global PAGE_SIZE
+    announcements = Announcement.objects.all().order_by('-date_added')
+    result_page = paginator.paginate_queryset(announcements, request)
+    serializer = AnnouncementSerializer(result_page, many=True)
+    return paginator.get_paginated_response(serializer.data)
         
 
 @api_view(['POST'])
