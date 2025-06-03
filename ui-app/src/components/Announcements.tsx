@@ -21,6 +21,10 @@ const Announcements = () => {
     }
     
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const [next, setNext] = useState<string | null>(null);
+    const [previous, setPrevious] = useState<string | null>(null);
+    const [count, setCount] = useState<number>(0);
+    const [page, setPage] = useState<number>(1);
     interface User {
         id: number;
         first_name: string;
@@ -33,11 +37,14 @@ const Announcements = () => {
     const [user, setUser] = useState<User | null>(null);
     const navigate = useNavigate();
 
-    const fetchAnnouncements = async () => {
+    const fetchAnnouncements = async (page = 1) => {
         try {
-            const response = await axios.get('http://localhost:8000/api/announcements/', {
-            });
-            setAnnouncements(response.data);
+            const response = await axios.get(`http://localhost:8000/api/announcements/?page=${page}`);
+            setAnnouncements(Array.isArray(response.data.results) ? response.data.results : []);
+            setNext(response.data.next);
+            setPrevious(response.data.previous);
+            setCount(response.data.count);
+            setPage(page);
         } catch (error) {
             console.error('Błąd pobierania ogłoszeń:', error);
         }
@@ -75,23 +82,17 @@ const Announcements = () => {
     };
 
     useEffect(() => {
-        fetchAnnouncements();
+        fetchAnnouncements(page);
         fetchUser();
-    }, []);
+    }, [page]);
 
     return (
         <div className="announcements-container">
             <button className="add-button" onClick={() => navigate(user ? "/add" : "/login")}>
                 Add Announcement
             </button>
-            <button 
-                className="refresh-button" 
-                onClick={fetchAnnouncements}
-            >
-                Refresh
-            </button>
             <div className="announcements-grid">
-                {announcements.map(announcement => (
+                {Array.isArray(announcements) && announcements.map(announcement => (
                     <div key={announcement.id} className="announcement-card">
                         <div className="left-section">
                             <h3 className="subject">{announcement.subject}</h3>
@@ -116,6 +117,12 @@ const Announcements = () => {
                         </div>
                     </div>
                 ))}
+            </div>
+            <div className="pagination">
+                <span>Total: {count}</span>
+                <button disabled={!previous} onClick={() => fetchAnnouncements(page - 1)}>Previous</button>
+                <span>Page {page}</span>
+                <button disabled={!next} onClick={() => fetchAnnouncements(page + 1)}>Next</button>
             </div>
         </div>
     );

@@ -1,6 +1,7 @@
 .announcements-container {
     position: relative;
     padding: 100px 20px 20px; /* Zwiększony padding od góry */
+    margin-top: 20px;
 }
 
 
