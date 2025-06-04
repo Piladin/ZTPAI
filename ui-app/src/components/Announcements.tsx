@@ -19,12 +19,16 @@ const Announcements = () => {
             phone_number?: string;
         };
     }
-    
+    const subjects = ["Matematyka", "Fizyka", "Chemia", "Informatyka", "Biologia", "Język angielski"];
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [next, setNext] = useState<string | null>(null);
     const [previous, setPrevious] = useState<string | null>(null);
     const [count, setCount] = useState<number>(0);
     const [page, setPage] = useState<number>(1);
+    const [searchSubject, setSearchSubject] = useState('');
+    const [searchMinRate, setSearchMinRate] = useState('');
+    const [searchMaxRate, setSearchMaxRate] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
     interface User {
         id: number;
         first_name: string;
@@ -81,10 +85,39 @@ const Announcements = () => {
         }
     };
 
-    useEffect(() => {
+    const searchAnnouncements = async () => {
+    try {
+        const params: any = {};
+        if (searchSubject) params.subject = searchSubject;
+        if (searchMinRate) params.min_rate = searchMinRate;
+        if (searchMaxRate) params.max_rate = searchMaxRate;
+
+        const response = await axios.get('http://localhost:8000/api/announcements/search/', { params });
+        setAnnouncements(Array.isArray(response.data) ? response.data : []);
+        setNext(null);
+        setPrevious(null);
+        setCount(response.data.length || 0);
+        setPage(1);
+        setIsSearching(true);
+    } catch (error) {
+        console.error('Błąd wyszukiwania ogłoszeń:', error);
+    }
+    };
+
+    const resetSearch = () => {
+    setSearchSubject('');
+    setSearchMinRate('');
+    setSearchMaxRate('');
+    setIsSearching(false);
+    fetchAnnouncements(1);
+    };
+
+useEffect(() => {
+    if (!isSearching) {
         fetchAnnouncements(page);
-        fetchUser();
-    }, [page]);
+    }
+    fetchUser();
+    }, [page, isSearching]);
 
     return (
         <div className="announcements-container">
@@ -123,6 +156,31 @@ const Announcements = () => {
                 <button disabled={!previous} onClick={() => fetchAnnouncements(page - 1)}>Previous</button>
                 <span>Page {page}</span>
                 <button disabled={!next} onClick={() => fetchAnnouncements(page + 1)}>Next</button>
+            </div>
+            <div className="search-bar">
+                <select
+                    value={searchSubject}
+                    onChange={e => setSearchSubject(e.target.value)}
+                >
+                    <option value="">Wszystkie przedmioty</option>
+                    {subjects.map(subj => (
+                        <option key={subj} value={subj}>{subj}</option>
+                    ))}
+                </select>
+                <input
+                    type="number"
+                    placeholder="Min rate"
+                    value={searchMinRate}
+                    onChange={e => setSearchMinRate(e.target.value)}
+                />
+                <input
+                    type="number"
+                    placeholder="Max rate"
+                    value={searchMaxRate}
+                    onChange={e => setSearchMaxRate(e.target.value)}
+                />
+                <button onClick={searchAnnouncements}>Search</button>
+                <button onClick={resetSearch}>Reset</button>
             </div>
         </div>
     );
