@@ -75,7 +75,7 @@ class AnnouncementListTestCase(APITestCase):
     def test_get_announcements(self):
         response = self.client.get("/api/announcements/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data), 4)
         
 class AddAnnouncementTestCase(APITestCase):
     def setUp(self):
