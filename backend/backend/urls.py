@@ -26,7 +26,6 @@ schema_view = get_schema_view(
         default_version="v1",
         description="API documentation for ZTPAI project",
         terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="support@ztpai.com"),
         license=openapi.License(name="MIT License"),
     ),
     public=True,

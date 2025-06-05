@@ -18,8 +18,10 @@ from .exceptions import (
 from django.db.models import Q
 from .tasks import send_notification
 from rest_framework.pagination import PageNumberPagination
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
-
+@swagger_auto_schema(method='post', request_body=RegisterSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -71,7 +73,23 @@ def register(request):
     print("Serializer errors:", serializer.errors) 
     raise ValidationErrorException(detail=serializer.errors)
 
-
+@swagger_auto_schema(
+    method='post',
+    request_body=TokenObtainPairSerializer,
+    responses={
+        200: openapi.Response(
+            description="Authentication successful",
+            examples={
+                "application/json": {
+                    "refresh": "string",
+                    "access": "string",
+                    "user_id": 1
+                }
+            }
+        ),
+        400: "Invalid credentials"
+    }
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
@@ -170,8 +188,25 @@ def announcement_list(request):
     result_page = paginator.paginate_queryset(announcements, request)
     serializer = AnnouncementSerializer(result_page, many=True)
     return paginator.get_paginated_response(serializer.data)
-        
-
+    
+    
+@swagger_auto_schema(
+    method='post',
+    request_body=TokenObtainPairSerializer,
+    responses={
+        200: openapi.Response(
+            description="Authentication successful",
+            examples={
+                "application/json": {
+                    "refresh": "string",
+                    "access": "string",
+                    "user_id": 1
+                }
+            }
+        ),
+        400: "Invalid credentials"
+    }
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_announcement(request):
@@ -235,7 +270,18 @@ def add_announcement(request):
         except Exception as e:
             raise ValidationErrorException(detail=str(e))
     raise ValidationErrorException(detail=serializer.errors)
-    
+
+
+@swagger_auto_schema(
+    method='put',
+    request_body=AnnouncementSerializer,
+    responses={
+        200: AnnouncementSerializer,
+        400: "Validation error",
+        403: "Unauthorized access",
+        404: "Announcement not found"
+    }
+)    
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def edit_announcement(request, pk):
@@ -298,7 +344,16 @@ def edit_announcement(request, pk):
         raise ValidationErrorException(detail=serializer.errors)
     except ObjectDoesNotExist:
         raise AnnouncementNotFoundException()
-    
+
+
+@swagger_auto_schema(
+    method='put',
+    request_body=SystemUserSerializer,
+    responses={
+        200: SystemUserSerializer,
+        400: "Validation error"
+    }
+)    
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def edit_user(request):
@@ -361,6 +416,18 @@ def edit_user(request):
             raise ValidationErrorException(detail=f"Error updating user: {str(e)}")
     raise ValidationErrorException(detail=serializer.errors)
 
+
+@swagger_auto_schema(
+    method='delete',
+    manual_parameters=[
+        openapi.Parameter('id', openapi.IN_PATH, description="ID of the announcement to delete", type=openapi.TYPE_INTEGER)
+    ],
+    responses={
+        204: "Announcement deleted successfully",
+        403: "Unauthorized access",
+        404: "Announcement not found"
+    }
+)
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_announcement(request, pk):
@@ -390,6 +457,11 @@ def delete_announcement(request, pk):
     except ObjectDoesNotExist:
         raise AnnouncementNotFoundException()
     
+
+@swagger_auto_schema(
+    method='get',
+    responses={200: SystemUserSerializer}
+)    
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_current_user(request):
@@ -431,6 +503,14 @@ def get_current_user(request):
     except Exception as e:
         raise ValidationErrorException(detail=f"Error fetching user: {str(e)}")
 
+
+@swagger_auto_schema(
+    method='get',
+    manual_parameters=[
+        openapi.Parameter('pk', openapi.IN_PATH, description="ID of the announcement", type=openapi.TYPE_INTEGER)
+    ],
+    responses={200: AnnouncementSerializer, 404: "Announcement not found"}
+)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_announcement(request, pk):
@@ -444,6 +524,15 @@ def get_announcement(request, pk):
         raise ValidationErrorException(detail=f"Error fetching announcement: {str(e)}")
     
 
+@swagger_auto_schema(
+    method='get',
+    manual_parameters=[
+        openapi.Parameter('subject', openapi.IN_QUERY, description="Subject filter", type=openapi.TYPE_STRING),
+        openapi.Parameter('min_rate', openapi.IN_QUERY, description="Minimal rate", type=openapi.TYPE_NUMBER),
+        openapi.Parameter('max_rate', openapi.IN_QUERY, description="Maximal rate", type=openapi.TYPE_NUMBER),
+    ],
+    responses={200: AnnouncementSerializer(many=True)}
+)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def search_announcements(request):
@@ -467,6 +556,10 @@ def search_announcements(request):
         raise ValidationErrorException(detail=f"Error searching announcements: {str(e)}")
 
 
+@swagger_auto_schema(
+    method='get',
+    responses={200: SystemUserSerializer(many=True), 403: "Unauthorized access"}
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_list(request):
@@ -509,6 +602,18 @@ def user_list(request):
     serializer = SystemUserSerializer(users, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+@swagger_auto_schema(
+    method='delete',
+    manual_parameters=[
+        openapi.Parameter('pk', openapi.IN_PATH, description="ID of the user to delete", type=openapi.TYPE_INTEGER)
+    ],
+    responses={
+        204: "User deleted successfully",
+        403: "Unauthorized access",
+        404: "User not found"
+    }
+)
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_user(request, pk):
