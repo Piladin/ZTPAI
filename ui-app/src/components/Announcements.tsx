@@ -144,6 +144,7 @@ useEffect(() => {
                             {(user && (user.id === announcement.author.id || user.is_staff)) && (
                                 <div className="admin-actions">
                                     <button className="edit-button" onClick={() => navigate(`/edit/${announcement.id}`)}>✏️</button>
+                                    <br></br>
                                     <button className="delete-button" onClick={() => handleDelete(announcement.id)}>🗑️</button>
                                 </div>
                             )}
